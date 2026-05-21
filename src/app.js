@@ -43,6 +43,22 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // 4. Centralized Application Routing
 app.use('/api/v1', apiRouter);
 
+// Root Endpoint Welcome Handler
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to the Cord4 Premium API Service.',
+    version: '1.0.0',
+    status: 'Operational',
+    endpoints: {
+      health: '/api/v1/health',
+      auth: '/api/v1/auth/*',
+      users: '/api/v1/users/*',
+      notifications: '/api/v1/notifications/*'
+    }
+  });
+});
+
 // 5. Catch-All Route 404 Handler
 app.use((req, res, next) => {
   next(new ApiError(404, `Cannot find route '${req.method} ${req.originalUrl}' on this server.`));
