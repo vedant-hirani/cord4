@@ -1,0 +1,523 @@
+{
+  "info": {
+    "_postman_id": "e2023cf5-528d-4f1b-b461-9c863d0473cf",
+    "name": "SpendAI Expense Tracker API",
+    "description": "Production-ready Postman collection for the SpendAI Expense Tracker. Covers authentication, expense ledger CRUD, CSV export, analytics stats, budget targets, dynamic progress alerts, and Grok AI extraction.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "System Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Checks backend status and uptime."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response && response.success && response.data && response.data.tokens) {",
+                  "    pm.collectionVariables.set(\"auth_token\", response.data.tokens.accessToken);",
+                  "    pm.collectionVariables.set(\"refresh_token\", response.data.tokens.refreshToken);",
+                  "    console.log(\"Register: Auth tokens stored in collection variables successfully!\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vedant Hirani\",\n  \"email\": \"vedant.hirani@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a new user profile and returns access and refresh JWT pairs."
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response && response.success && response.data && response.data.tokens) {",
+                  "    pm.collectionVariables.set(\"auth_token\", response.data.tokens.accessToken);",
+                  "    pm.collectionVariables.set(\"refresh_token\", response.data.tokens.refreshToken);",
+                  "    console.log(\"Login: Auth tokens stored in collection variables successfully!\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"vedant.hirani@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticates credentials and issues a JWT token. Automatically saves access and refresh tokens in postman variables."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Invalidates the user's active session and clears the refresh token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Expenses Ledger",
+      "item": [
+        {
+          "name": "Record New Expense",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 84.50,\n  \"category\": \"Food\",\n  \"date\": \"2026-05-22\",\n  \"note\": \"Whole Foods organic groceries\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ]
+            },
+            "description": "Saves a new expense item with multi-level Joi schemas and returns the documented transaction."
+          },
+          "response": []
+        },
+        {
+          "name": "List Expenses Ledger",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses?month=2026-05&category=Food",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-05"
+                },
+                {
+                  "key": "category",
+                  "value": "Food"
+                }
+              ]
+            },
+            "description": "Retrieves the list of expenses matching filters (e.g. category choice and target month YYYY-MM)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Dashboard Analytics Stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "stats"
+              ]
+            },
+            "description": "Aggregates total monthly spending, category-wise breakdowns, and 6-Month expenditure trends."
+          },
+          "response": []
+        },
+        {
+          "name": "Export Expenses to CSV",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/export?month=2026-05",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-05"
+                }
+              ]
+            },
+            "description": "Generates and streams a CSV download containing formatted expense logs matching selected filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Expense Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 95.00,\n  \"category\": \"Food\",\n  \"date\": \"2026-05-22\",\n  \"note\": \"Whole Foods organic groceries (Edited)\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses/YOUR_EXPENSE_ID",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "YOUR_EXPENSE_ID"
+              ]
+            },
+            "description": "Updates details of a previously registered expense record."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Expense Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/YOUR_EXPENSE_ID",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "YOUR_EXPENSE_ID"
+              ]
+            },
+            "description": "Removes a specific transaction ledger record from the database."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Budgets Manager",
+      "item": [
+        {
+          "name": "Configure Category Limit Target",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Food\",\n  \"limit\": 500,\n  \"month\": \"2026-05\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/budgets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "budgets"
+              ]
+            },
+            "description": "Configures or updates a monthly limit target for a specific category."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Progressive Budget Alerts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/budgets/alerts?month=2026-05",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "budgets",
+                "alerts"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-05"
+                }
+              ]
+            },
+            "description": "Retrieves spending progress metrics compared against set limits, categorizing status as normal, warning (>= 80%), or danger (>= 100%)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Grok Extractor",
+      "item": [
+        {
+          "name": "Autofill Receipt Text Parser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rawText\": \"Paid $32.45 for a ride back home from the office with Uber on 2026-05-22\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/extract",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ai",
+                "extract"
+              ]
+            },
+            "description": "Sends raw receipt/SMS/email transaction text to Grok completions API and extracts structured amount, category, date, and note parameters."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_access_token_here",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "your_jwt_refresh_token_here",
+      "type": "string"
+    }
+  ]
+}

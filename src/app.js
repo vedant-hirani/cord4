@@ -38,6 +38,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(loggerMiddleware); // Winston Request logger
 
 // 3. Static Assets Serving
+app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // 4. Centralized Application Routing
@@ -54,7 +55,10 @@ app.get('/', (req, res) => {
       health: '/api/v1/health',
       auth: '/api/v1/auth/*',
       users: '/api/v1/users/*',
-      notifications: '/api/v1/notifications/*'
+      notifications: '/api/v1/notifications/*',
+      expenses: '/api/v1/expenses/*',
+      budgets: '/api/v1/budgets/*',
+      ai: '/api/v1/ai/*'
     }
   });
 });

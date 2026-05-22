@@ -1,140 +1,133 @@
-# Scalable Production-Grade Node.js + Express Backend Boilerplate
+# SpendAI — Production-Grade AI-Powered Expense Tracker Backend & SPA
 
-Welcome to the **Cord4 Scalable Backend** boilerplate! This project is built using **Node.js, Express, MongoDB (Mongoose)**, and **ES Modules (ESM)**. It implements an enterprise-level architecture separating controllers, services, repositories, schemas, and DTOs to ensure high maintainability, extreme testability, and fast scale.
+Welcome to **SpendAI**, a highly scalable, production-grade AI-powered Expense Tracker! This application is built inside a modular **Node.js, Express, MongoDB (Mongoose)** workspace using **ES Modules (ESM)**. 
+
+SpendAI includes full-stack capabilities, serving a premium dark-mode Single Page Application (SPA) directly from the Express `/public` static asset directory. It features JWT authentication, category-wise expense CRUD, CSV exports, dynamic analytics charts (via Chart.js CDNs), monthly budget threshold progress bars, and real-time transaction extraction from raw receipts or SMS bills using the OpenAI-compatible **xAI Grok completions API**.
 
 ---
 
-## 🏗️ Flow Architecture & Layer Responsibilities
+## 🏗️ Layered Architecture & Request Flow
 
-The request flow strictly adheres to standard corporate guidelines:
+SpendAI follows a rigid enterprise-level layered architecture separating concerns at every level:
 
 ```
-Client Request
+Client (Single Page Application / Postman)
       ↓
-Route Definition (src/routes/ & src/modules/)
+Route Definition (src/routes/)
       ↓
-Validation Middleware (Zod Schemas)
+Validation Middleware (Joi Schemas - decoupled from hardcoded strings)
       ↓
-Auth Middleware (JWT Protect Guards - if protected)
+Auth Middleware (JWT Bearer Token Guard)
       ↓
-Controller (req/res handler, thin controller)
+Controller Layer (thin handler, extracts parameters, invokes services)
       ↓
-Service (Core Business Logic)
+Service Layer (core business logic, Grok xAI API integrations, stats aggregations)
       ↓
-Repository (Mongoose queries only)
+Database Layer (Mongoose schemas & models with compound unique indexing)
       ↓
-DTO Formatting (Data Transfer Object filter)
-      ↓
-ApiResponse Utility (Consistent success/error shapes)
+ApiResponse / ApiError Wrapper (centralized response standards)
       ↓
 Client Response
 ```
 
-### Layer Rules
-1. **Routes**: Define paths, map middlewares, and pass parameters. No logic.
-2. **Validation**: Enforce request structural constraints using **Zod** before controllers execute.
-3. **Auth Middleware**: Check signature Bearer tokens, parse roles, and verify status.
-4. **Controllers**: Handle incoming Express requests, unpack inputs, call services, and trigger `ApiResponse`.
-5. **Services**: Business logic. Encapsulate multi-step database changes, calculate algorithms, and dispatch external resources.
-6. **Repositories**: Database interactions only. Keep Mongoose methods out of controllers and services.
-7. **DTOs**: Sanitize and construct outgoing database entities (filter password fields, refresh tokens, etc.).
-8. **Utils**: Reusable, lightweight functions (OTP, paginator formatters, error models, date extensions).
+### Decoupled Constants Guideline
+To prevent leakage of hardcoded user-facing strings or validation errors into controllers or services, all success message templates and Joi validation text strings reside strictly inside [constants.js](file:///c:/Users/vedant/Desktop/Cord4/src/utils/constants.js).
 
 ---
 
-## 📂 Project Directory Layout
+## 📂 Modular Structure & New Core Files
+
+The new expense, budget, and AI modules are fully integrated:
 
 ```
-project-root/
-├── src/
-│   ├── config/            # DB, Winston Loggers, Env configurations
-│   ├── modules/           # Encapsulated Business Modules
-│   │   ├── auth/          # Registration, Login, Token renewals
-│   │   ├── user/          # User Schema, Profile managers
-│   │   └── notification/  # Notification services and dispatches
-│   ├── middlewares/       # Core Express interceptor middlewares
-│   ├── services/          # Infrastructure Services (S3, Email, SMS)
-│   ├── utils/             # Helper Response, Error, and Date utils
-│   ├── helpers/           # Multer, token, and bcrypt wrappers
-│   ├── validators/        # Standard Password & common regex validators
-│   ├── database/          # Migrations & seeders folders
-│   ├── routes/            # Central Application Routing tables
-│   ├── app.js             # Core Express server settings & security
-│   └── server.js          # Startup bootstrap script
-├── tests/                 # Complete Jest ESM test runner suite
-│   ├── unit/              # AuthService business checks
-│   └── integration/       # Route request verification checks
-├── uploads/               # Temporary uploads storage folder
-├── Dockerfile             # Alpine-based production docker build
-├── docker-compose.yml     # Mongo and App environment orchestration
-├── .env                   # Local settings configurations
-└── README.md              # Project walkthrough guide
+src/
+├── controllers/
+│   ├── ai.controller.js       # AI text parsing endpoint handler
+│   ├── budget.controller.js   # Budget configuration & alerts endpoint handler
+│   └── expense.controller.js  # Expense CRUD, stats, & CSV endpoint handler
+├── models/
+│   ├── ai/
+│   │   └── ai.service.js      # Grok v2 Chat Completion API parser client
+│   ├── budget/
+│   │   ├── budget.model.js    # Budget limit schema (unique index: userId, category, month)
+│   │   └── budget.service.js  # Upserts targets & computes alert thresholds (80% / 100%)
+│   └── expense/
+│       ├── expense.model.js   # Expense schema (amount, category, date, note, userId)
+│       └── expense.service.js # Ledger CRUD, CSV generators, & analytical stats aggregators
+├── routes/
+│   ├── ai.routes.js           # Mounted at /api/v1/ai
+│   ├── budget.routes.js       # Mounted at /api/v1/budgets
+│   ├── expense.routes.js      # Mounted at /api/v1/expenses
+│   └── index.js               # Central sub-routers mount index
+├── validators/
+│   ├── ai.validation.js       # Joi schema validating raw receipt text payloads
+│   ├── budget.validation.js   # Joi schema validating budget limits
+│   └── expense.validation.js  # Joi schema validating expense creation/updates
+└── app.js                     # Configured to serve SPA assets from public/
+
+public/
+└── index.html                 # Stunning dark-mode glassmorphism full-stack dashboard SPA
 ```
 
 ---
 
-## 🚀 Getting Started
+## ⚡ Core Features Walkthrough
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [MongoDB](https://www.mongodb.com/) (running locally or via Docker)
+1. **Token Authentication Gate**: Seamless user registration, login, profile caching, and authorization guards protecting all financial endpoints.
+2. **Interactive Spend Ledger**:
+   - Save, modify, or delete manual transactions.
+   - Filter ledger list by month or specific category.
+   - Live download of all-time or monthly-filtered transactions in raw **CSV format** (complete with escaped values).
+3. **xAI Grok AutoFill Extractor**:
+   - Pastes receipt transcriptions, invoice copies, or SMS texts.
+   - Sends payload to `https://api.x.ai/v1/chat/completions` using the `GROK_API_KEY`.
+   - Returns structured JSON containing amount, category, transaction date, and descriptive notes.
+   - Auto-fills a confirm/edit form block on the SPA dashboard for seamless ledger additions.
+4. **Dynamic Analytics Charts**:
+   - Beautiful responsive Category Breakdown Donut chart (Color-coded mapping to Food, Transport, Utilities, Entertainment, Shopping, and Other).
+   - 6-Month Expenditure Trends bar chart featuring custom gradient overlays.
+5. **Progressive Budget Threshold Indicators**:
+   - Configure category spend limit targets (e.g. Food, Utilities) for any YYYY-MM month.
+   - Dynamic progress indicators:
+     - **Green/Emerald**: Normal spending status under 80% limit capacity.
+     - **Vibrant Amber/Yellow Warning**: Triggers when current spending hits 80% to 99% capacity.
+     - **Pulsing Crimson/Red Danger Alert**: Triggers when spending meets or exceeds 100% budget limit capacity.
 
-### Installation
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+---
 
-2. Copy the environment variables setup file (which contains standard ports and secrets):
-   ```bash
-   # Already created for you in root! Feel free to modify c:\Users\vedant\Desktop\Cord4\.env
-   ```
+## 🚀 Installation & Getting Started
 
-### Running Locally
-- Start the server in **development mode** (with hot reloading via nodemon):
-  ```bash
-   npm run dev
-   ```
-- Start the server in **production mode**:
-  ```bash
-   npm run start
-   ```
-
-### Running via Docker Compose
-Build and run the entire multi-container stack (App + MongoDB database persistence):
+### 1. Install Dependencies
 ```bash
-docker-compose up --build
+npm install
 ```
+
+### 2. Configure Environment Variables
+Copy [.env.example](file:///c:/Users/vedant/Desktop/Cord4/.env.example) to `.env` and fill in your keys:
+```env
+PORT=5000
+NODE_ENV=development
+MONGO_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_jwt_access_secret_key
+GROK_API_KEY=your_grok_xai_api_key
+```
+
+### 3. Launch Development Server
+```bash
+npm run dev
+```
+The application will launch on `http://localhost:5000`. Open this address in your browser to interact with the premium Single Page Application dashboard!
 
 ---
 
-## 🧪 Testing Suite
+## 🧪 Postman & Automated Verification
 
-Tests run in **ES Modules (ESM) mode** using Jest and Supertest.
+### Postman Collections
+A comprehensive, production-grade Postman collection file containing all authentication, expense CRUD, CSV exports, budget limits, dynamic alerts, and Grok AI text extractions is saved in the root directory:
+👉 **[cord4_expense_tracker_postman.json](file:///c:/Users/vedant/Desktop/Cord4/cord4_expense_tracker_postman.json)**
 
-To run the complete test suites (unit + integration):
+### Run Jest & Supertest Verification Suites
+To verify imports, syntax correctness, and structural integrity:
 ```bash
 npm run test
 ```
-
----
-
-## 🌐 API Endpoint List
-
-### 🔑 Authentication Module
-- `POST /api/v1/auth/register` - Create new user account (Zod validated).
-- `POST /api/v1/auth/login` - Authenticate credentials and get JWT token pair.
-- `POST /api/v1/auth/refresh` - Rotate expired access tokens using valid refresh tokens.
-- `POST /api/v1/auth/logout` - Clear refresh tokens from databases (Protected).
-
-### 👤 User Profile Module
-- `GET /api/v1/users/me` - Fetch profile metadata of signed-in user (Protected).
-- `PATCH /api/v1/users/me` - Edit profile attributes (Protected).
-- `POST /api/v1/users/change-password` - Update account password (Protected).
-- `GET /api/v1/users/list` - Paginated administrative user directory (Admin/Manager only).
-
-### 📢 Notifications Module
-- `POST /api/v1/notifications/send` - Async multi-channel simulated SMTP/SMS/Push notifications dispatch (Protected).
-
-### 🩺 System Diagnostics
-- `GET /api/v1/health` - Basic uptime statistics diagnostic.

@@ -57,6 +57,14 @@ export const SUCCESS_MESSAGES = {
   CHANGE_PASSWORD: 'Password changed successfully',
   LIST_USERS: 'Users listing retrieved successfully',
   SEND_NOTIFICATION: 'System notifications dispatched successfully',
+  CREATE_EXPENSE: 'Expense record created successfully',
+  UPDATE_EXPENSE: 'Expense record updated successfully',
+  DELETE_EXPENSE: 'Expense record deleted successfully',
+  LIST_EXPENSES: 'Expenses listed successfully',
+  GET_STATS: 'Dashboard analytics retrieved successfully',
+  SET_BUDGET: 'Budget threshold configured successfully',
+  GET_ALERTS: 'Budget status alerts retrieved successfully',
+  AI_EXTRACT: 'AI expense extraction completed successfully',
 };
 
 export default {
