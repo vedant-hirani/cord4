@@ -13,7 +13,19 @@ export const getBudgetAlertsController = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, alerts, SUCCESS_MESSAGES.GET_ALERTS, 200);
 });
 
+export const listBudgetsController = asyncHandler(async (req, res) => {
+  const budgets = await budgetService.listBudgets(req.user.id, req.query.month);
+  return ApiResponse.success(res, budgets, SUCCESS_MESSAGES.LIST_BUDGETS, 200);
+});
+
+export const deleteBudgetController = asyncHandler(async (req, res) => {
+  const result = await budgetService.deleteBudget(req.user.id, req.params.id);
+  return ApiResponse.success(res, result, SUCCESS_MESSAGES.DELETE_BUDGET, 200);
+});
+
 export default {
   setBudgetController,
   getBudgetAlertsController,
+  listBudgetsController,
+  deleteBudgetController,
 };

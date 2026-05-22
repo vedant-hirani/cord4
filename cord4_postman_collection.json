@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "c13876e5-4a6c-48d6-95df-d1c863d0473a",
-    "name": "Cord4 Backend API",
-    "description": "Production-grade, highly scalable Node.js + Express backend API. Features multi-layered validation, decoupled DTO conversion, centralized constants, and token-based authentication.",
+    "_postman_id": "e2023cf5-528d-4f1b-b461-9c863d0473cf",
+    "name": "SpendAI Expense Tracker API - Master Integration Guide",
+    "description": "# SpendAI Expense Tracker - Premium Integration Guide\n\nWelcome to the developer API guide for the **SpendAI Expense Tracker**. This master Postman collection acts as a fully documented blueprint for front-end developers, covering all core and supporting endpoints.\n\n### 🌟 Collection Highlights:\n1. **Automated Token Management**: Registration, Login, and Refresh endpoints feature Postman Test Scripts that automatically parse JWT tokens and refresh tokens, saving them directly into `{{auth_token}}` and `{{refresh_token}}` variables.\n2. **Rich Markdown Guides**: Every request is documented with Joi payload schemas, query parameters, visual mapping guides, and sample responses.\n3. **Centralized Variables**: Base URL is managed through the `{{base_url}}` variable. Change it globally to point to localhost or your staging/production server.\n\n---\n\n### 🛠️ Environment Configuration & Variables:\n- `base_url`: Target URL namespace (Default: `http://localhost:5000/api/v1`)\n- `auth_token`: Set automatically after a successful login or register call. Used as a Bearer token.\n- `refresh_token`: Set automatically, used to fetch fresh credentials securely.\n\n---\n\n### 📊 Supported Expense Categories:\n- `Food`\n- `Transport`\n- `Utilities`\n- `Entertainment`\n- `Shopping`\n- `Other`\n\n---\n\n*Created with 💙 by Antigravity AI*",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Health & Status",
+      "name": "Health & System Status",
       "item": [
         {
           "name": "System Health Check",
@@ -23,17 +23,33 @@
                 "health"
               ]
             },
-            "description": "Returns the current API health status, server timestamp, and application uptime."
+            "description": "### 🏥 System Health Check\nChecks if the backend is running, responsive, and connected to resources.\n\n#### 🔑 Authentication:\n- **None** (Publicly accessible endpoint)\n\n#### 📈 Expected Response Pattern:\n```json\n{\n  \"success\": true,\n  \"status\": \"UP\",\n  \"timestamp\": \"2026-05-22T12:00:00.000Z\",\n  \"uptime\": 1184.23\n}\n```\n\n#### 💡 Frontend Integration Tip:\nRun this request on App mount, or inside a network checking service, to display a green/red network indicator for your users."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Authentication",
+      "name": "Authentication & Session",
       "item": [
         {
           "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response && response.success && response.data && response.data.tokens) {",
+                  "    pm.collectionVariables.set(\"auth_token\", response.data.tokens.accessToken);",
+                  "    pm.collectionVariables.set(\"refresh_token\", response.data.tokens.refreshToken);",
+                  "    console.log(\"Register: Tokens saved in variables successfully!\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -44,7 +60,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"user\"\n}"
+              "raw": "{\n  \"name\": \"Vedant Hirani\",\n  \"email\": \"vedant.hirani@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"user\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
@@ -56,12 +72,28 @@
                 "register"
               ]
             },
-            "description": "Registers a new user account on the platform with strong password checks. Returns the user details and a generated JWT key pair."
+            "description": "### 📝 Register User\nRegisters a new user on the platform. On success, it automatically logs the user in by generating a JWT accessToken and a session refreshToken.\n\n#### 🔑 Authentication:\n- **None**\n\n#### 📦 Request Payload (Joi Constraints):\n| Field | Type | Required | Description | Constraints |\n| :--- | :--- | :--- | :--- | :--- |\n| `name` | String | **Yes** | Full user name | 2-50 chars |\n| `email` | String | **Yes** | Valid email address | Unique |\n| `password` | String | **Yes** | Strong Password | 8-128 chars, min 1 Upper, 1 Lower, 1 Digit, 1 Special Char |\n| `role` | String | No | Access group level | 'user' \\| 'admin' \\| 'manager' (Default: 'user') |\n\n#### 📈 Expected Response Pattern (201 Created):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 201,\n  \"message\": \"User registered successfully\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"664dd4e03d4a460a80e1a123\",\n      \"name\": \"Vedant Hirani\",\n      \"email\": \"vedant.hirani@example.com\",\n      \"role\": \"user\"\n    },\n    \"tokens\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...\",\n      \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...\"\n    }\n  }\n}\n```\n\n#### ⚠️ Possible Error Codes:\n- **400 Bad Request**: Invalid email pattern, weak password strength, or missing required fields.\n- **409 Conflict**: A user account with this email address already exists."
           },
           "response": []
         },
         {
           "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response && response.success && response.data && response.data.tokens) {",
+                  "    pm.collectionVariables.set(\"auth_token\", response.data.tokens.accessToken);",
+                  "    pm.collectionVariables.set(\"refresh_token\", response.data.tokens.refreshToken);",
+                  "    console.log(\"Login: Tokens saved in variables successfully!\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -72,7 +104,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+              "raw": "{\n  \"email\": \"vedant.hirani@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -84,12 +116,28 @@
                 "login"
               ]
             },
-            "description": "Authenticates user credentials and returns an Access Token along with a Refresh Token."
+            "description": "### 🔓 Login User\nAuthenticates credentials and grants JWT access/refresh token pairs. Automatically stores tokens in variables upon a successful response.\n\n#### 🔑 Authentication:\n- **None**\n\n#### 📦 Request Payload:\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `email` | String | **Yes** | User registered email address |\n| `password` | String | **Yes** | User password |\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"User logged in successfully\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"664dd4e03d4a460a80e1a123\",\n      \"name\": \"Vedant Hirani\",\n      \"email\": \"vedant.hirani@example.com\",\n      \"role\": \"user\"\n    },\n    \"tokens\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...\",\n      \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...\"\n    }\n  }\n}\n```\n\n#### ⚠️ Possible Error Codes:\n- **400 Bad Request**: Malformed credentials payload or schema validation fail.\n- **401 Unauthorized**: Incorrect email or password."
           },
           "response": []
         },
         {
-          "name": "Refresh Token",
+          "name": "Refresh Session Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response && response.success && response.data && response.data.tokens) {",
+                  "    pm.collectionVariables.set(\"auth_token\", response.data.tokens.accessToken);",
+                  "    pm.collectionVariables.set(\"refresh_token\", response.data.tokens.refreshToken);",
+                  "    console.log(\"Refresh: Tokens updated in variables successfully!\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -112,7 +160,7 @@
                 "refresh"
               ]
             },
-            "description": "Exchanges a valid refresh token for a fresh new pair of access and refresh tokens."
+            "description": "### 🔄 Refresh Session Token\nExchanges a valid refresh token for a brand new access token and refresh token pair. Necessary for keeping the user logged in without requiring constant credentials prompt input.\n\n#### 🔑 Authentication:\n- **None** (The refresh token itself validates credentials in the post body)\n\n#### 📦 Request Payload:\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `refreshToken` | String | **Yes** | The active refresh token stored in the client application |\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Tokens refreshed successfully\",\n  \"data\": {\n    \"tokens\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...\",\n      \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...\"\n    }\n  }\n}\n```\n\n#### ⚠️ Possible Error Codes:\n- **401 Unauthorized**: Refresh token is expired, invalid, or has been blacklisted due to sign-out."
           },
           "response": []
         },
@@ -141,14 +189,14 @@
                 "logout"
               ]
             },
-            "description": "Logs out the authenticated user by invalidating and clearing their active refresh token from the database."
+            "description": "### 🚪 Logout User\nInvalidates the active session and destroys the cached refresh token matching the JWT footprint, fully signing out the user.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"User logged out successfully\"\n}\n```\n\n#### 💡 Frontend Integration Tip:\nOn 200 Success, clear all tokens, profile info, and cached state from local storage (or secure state store) and redirect the user back to the `/login` portal."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Users",
+      "name": "User & Profile Management",
       "item": [
         {
           "name": "Get My Profile",
@@ -175,7 +223,7 @@
                 "me"
               ]
             },
-            "description": "Retrieves the currently authenticated user's profile information."
+            "description": "### 👤 Get My Profile\nRetrieves the profile information of the currently authenticated logged-in user.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"data\": {\n    \"id\": \"664dd4e03d4a460a80e1a123\",\n    \"name\": \"Vedant Hirani\",\n    \"email\": \"vedant.hirani@example.com\",\n    \"role\": \"user\",\n    \"createdAt\": \"2026-05-22T06:50:00.000Z\"\n  }\n}\n```"
           },
           "response": []
         },
@@ -201,7 +249,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"John Updated\",\n  \"email\": \"john.updated@example.com\"\n}"
+              "raw": "{\n  \"name\": \"Vedant Updated\",\n  \"email\": \"vedant.updated@example.com\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/users/me",
@@ -213,7 +261,7 @@
                 "me"
               ]
             },
-            "description": "Updates profile fields such as name or email for the logged-in user."
+            "description": "### ✏️ Update My Profile\nModifies user details. Both fields are optional but must pass structural requirements if provided.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📦 Request Payload (Joi Constraints):\n| Field | Type | Required | Description | Constraints |\n| :--- | :--- | :--- | :--- | :--- |\n| `name` | String | Optional | Updated user name | 2-50 chars |\n| `email` | String | Optional | Updated email address | Must be valid & unique |\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Profile updated successfully\",\n  \"data\": {\n    \"id\": \"664dd4e03d4a460a80e1a123\",\n    \"name\": \"Vedant Updated\",\n    \"email\": \"vedant.updated@example.com\",\n    \"role\": \"user\"\n  }\n}\n```"
           },
           "response": []
         },
@@ -251,7 +299,7 @@
                 "change-password"
               ]
             },
-            "description": "Modifies the authenticated user's password. Securely hashes and stores the new key."
+            "description": "### 🔑 Change My Password\nAllows users to securely update their passwords. Hashes and updates password records on Mongoose.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📦 Request Payload:\n| Field | Type | Required | Description | Constraints |\n| :--- | :--- | :--- | :--- | :--- |\n| `currentPassword` | String | **Yes** | Old credential password | Must match DB hash |\n| `newPassword` | String | **Yes** | Newly proposed password | Min 8 chars, strong rules |\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Password changed successfully\"\n}\n```\n\n#### ⚠️ Possible Error Codes:\n- **400 Bad Request**: New password is too weak or too short.\n- **401 Unauthorized**: Current password does not match DB records."
           },
           "response": []
         },
@@ -271,7 +319,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/users/list?page=1&limit=10&search=john",
+              "raw": "{{base_url}}/users/list?page=1&limit=10&search=vedant",
               "host": [
                 "{{base_url}}"
               ],
@@ -282,26 +330,598 @@
               "query": [
                 {
                   "key": "page",
-                  "value": "1"
+                  "value": "1",
+                  "description": "Target page offset"
                 },
                 {
                   "key": "limit",
-                  "value": "10"
+                  "value": "10",
+                  "description": "Items returned per page"
                 },
                 {
                   "key": "search",
-                  "value": "john"
+                  "value": "vedant",
+                  "description": "Case-insensitive query matches names/emails"
                 }
               ]
             },
-            "description": "Retrieves a paginated list of all users, searchable by name and email. Restricts access exclusively to Admin and Manager roles."
+            "description": "### 👑 List All Users (Administrative endpoint)\nRetrieves a list of users registered on the platform with support for text search query parsing and pagination thresholds.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n- **Role-Garded Required**: Active user profile must have the role **`admin`** or **`manager`** to pass safety check triggers.\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"data\": [\n    {\n      \"_id\": \"664dd4e03d4a460a80e1a123\",\n      \"name\": \"Vedant Hirani\",\n      \"email\": \"vedant.hirani@example.com\",\n      \"role\": \"admin\",\n      \"createdAt\": \"2026-05-22T06:50:00.000Z\"\n    }\n  ],\n  \"pagination\": {\n    \"totalItems\": 1,\n    \"totalPages\": 1,\n    \"currentPage\": 1,\n    \"limit\": 10\n  }\n}\n```\n\n#### ⚠️ Possible Error Codes:\n- **403 Forbidden**: Active signed-in profile is a regular user role and cannot bypass security limits."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Notifications",
+      "name": "Expenses Ledger Ledger",
+      "item": [
+        {
+          "name": "Record New Expense",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 84.50,\n  \"category\": \"Food\",\n  \"date\": \"2026-05-22\",\n  \"note\": \"Whole Foods organic groceries\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ]
+            },
+            "description": "### 💰 Record New Expense\nRecords an expenditure entry inside the database ledger. Runs Joi validators to ensure schema compliance.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📦 Request Payload (Joi Constraints):\n| Field | Type | Required | Description | Constraints |\n| :--- | :--- | :--- | :--- | :--- |\n| `amount` | Number | **Yes** | Transaction cost | >= 0 |\n| `category` | String | **Yes** | Spending channel | 'Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Other' |\n| `date` | Date String | **Yes** | Transaction date | ISO date string format (e.g., YYYY-MM-DD) |\n| `note` | String | No | Description detail | Max 250 chars |\n\n#### 📈 Expected Response Pattern (201 Created):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 201,\n  \"message\": \"Expense created successfully\",\n  \"data\": {\n    \"_id\": \"664dd4e03d4a460a80e1a456\",\n    \"user\": \"664dd4e03d4a460a80e1a123\",\n    \"amount\": 84.5,\n    \"category\": \"Food\",\n    \"date\": \"2026-05-22T00:00:00.000Z\",\n    \"note\": \"Whole Foods organic groceries\",\n    \"createdAt\": \"2026-05-22T12:00:00.000Z\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "List & Filter Expenses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses?month=2026-05&category=Food",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-05",
+                  "description": "Filter by month (YYYY-MM)"
+                },
+                {
+                  "key": "category",
+                  "value": "Food",
+                  "description": "Filter by category choice (Food | Transport | Utilities | Entertainment | Shopping | Other)"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-05-01",
+                  "disabled": true,
+                  "description": "Custom date range start boundary (YYYY-MM-DD)"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-05-31",
+                  "disabled": true,
+                  "description": "Custom date range end boundary (YYYY-MM-DD)"
+                }
+              ]
+            },
+            "description": "### 🔍 List & Filter Expenses\nRetrieves expenses list recorded by the authenticated user, supported by flexible filtering criteria. Useful for populating transaction lists on the frontend.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### ⚙️ Query Parameters:\n1. **`month`** (Optional): Triggers monthly bounds search (`YYYY-MM` format)\n2. **`category`** (Optional): Returns matches for standard expense categories\n3. **`startDate`** & **`endDate`** (Optional): Triggers custom range queries (`YYYY-MM-DD` format)\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"data\": [\n    {\n      \"_id\": \"664dd4e03d4a460a80e1a456\",\n      \"amount\": 84.5,\n      \"category\": \"Food\",\n      \"date\": \"2026-05-22T00:00:00.000Z\",\n      \"note\": \"Whole Foods organic groceries\",\n      \"createdAt\": \"2026-05-22T12:00:00.000Z\"\n    }\n  ]\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Quick Dashboard Summary Stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "stats"
+              ]
+            },
+            "description": "### 📊 Quick Dashboard Summary Stats\nProvides a quick dashboard analytical digest including total monthly spending, category breakdowns, and a 6-month historical spending trend.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"data\": {\n    \"totalThisMonth\": 84.5,\n    \"categoryBreakdown\": [\n      {\n        \"category\": \"Food\",\n        \"total\": 84.5\n      }\n    ],\n    \"monthlyTrends\": [\n      {\n        \"month\": \"2026-05\",\n        \"total\": 84.5\n      }\n    ]\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Export Expenses to CSV",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/export?month=2026-05",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-05",
+                  "description": "Filter CSV rows to a specific month (YYYY-MM)"
+                },
+                {
+                  "key": "category",
+                  "value": "Food",
+                  "disabled": true,
+                  "description": "Filter rows to a specific category choice"
+                }
+              ]
+            },
+            "description": "### 📥 Export Expenses to CSV\nStreams user ledger database entries in a tabular spreadsheet-ready CSV payload file.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📈 Expected Response Pattern (200 OK):\n- Content-Type: `text/csv`\n- Returns file attachment stream. Example content returned:\n```csv\nDate,Amount,Category,Note\n2026-05-22,84.50,Food,Whole Foods organic groceries\n```\n\n#### 💡 Frontend Integration Tip:\nTo trigger a download on the frontend from this endpoint:\n```javascript\nconst response = await fetch('/api/v1/expenses/export?month=2026-05', {\n  headers: { Authorization: `Bearer ${token}` }\n});\nconst blob = await response.blob();\nconst url = window.URL.createObjectURL(blob);\nconst a = document.createElement('a');\na.href = url;\na.download = 'Expenses_2026-05.csv';\na.click();\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Expense Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 95.00,\n  \"category\": \"Food\",\n  \"date\": \"2026-05-22\",\n  \"note\": \"Whole Foods organic groceries (Edited)\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/expenses/YOUR_EXPENSE_ID",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "YOUR_EXPENSE_ID"
+              ]
+            },
+            "description": "### ✏️ Update Expense Record\nEdits fields on an existing expense ledger item. Joi schema applies to any modified attributes.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### ⚙️ URL Path Parameters:\n- `YOUR_EXPENSE_ID`: The Mongoose `_id` identifier representing the expense record (e.g. `664dd4e03d4a460a80e1a456`)\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Expense updated successfully\",\n  \"data\": {\n    \"_id\": \"664dd4e03d4a460a80e1a456\",\n    \"amount\": 95.0,\n    \"category\": \"Food\",\n    \"date\": \"2026-05-22T00:00:00.000Z\",\n    \"note\": \"Whole Foods organic groceries (Edited)\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Expense Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses/YOUR_EXPENSE_ID",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses",
+                "YOUR_EXPENSE_ID"
+              ]
+            },
+            "description": "### 🗑️ Delete Expense Record\nPermanently removes an expense item from the ledger database.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### ⚙️ URL Path Parameters:\n- `YOUR_EXPENSE_ID`: The specific `_id` string identifying the record to delete.\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Expense deleted successfully\"\n}\n```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Budgets Manager",
+      "item": [
+        {
+          "name": "Configure Category Limit Target",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Food\",\n  \"limit\": 500,\n  \"month\": \"2026-05\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/budgets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "budgets"
+              ]
+            },
+            "description": "### 🎯 Configure Category Limit Target\nCreates or updates a monthly limit cap for a specific category of expenditure.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📦 Request Payload (Joi Constraints):\n| Field | Type | Required | Description | Format |\n| :--- | :--- | :--- | :--- | :--- |\n| `category` | String | **Yes** | Target spending category | 'Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Other' |\n| `limit` | Number | **Yes** | Upper cap limit amount | >= 0 |\n| `month` | String | **Yes** | Targeting calendar month | Must match `YYYY-MM` (e.g. `2026-05`) |\n\n#### 📈 Expected Response Pattern (200 OK / 201 Created):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Budget limit configured successfully\",\n  \"data\": {\n    \"_id\": \"664dd4e03d4a460a80e1a789\",\n    \"user\": \"664dd4e03d4a460a80e1a123\",\n    \"category\": \"Food\",\n    \"limit\": 500,\n    \"month\": \"2026-05\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Progressive Budget Alerts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/budgets/alerts?month=2026-05",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "budgets",
+                "alerts"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-05",
+                  "description": "Target calendar month (YYYY-MM)"
+                }
+              ]
+            },
+            "description": "### 🚨 Get Progressive Budget Alerts\nCalculates real-time category expenditure totals against set budgets. Categorizes status alerts into safe levels, warnings, or danger thresholds.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### ⚙️ Query Parameters:\n- `month` (Required): The YYYY-MM targets to check totals for.\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"data\": [\n    {\n      \"category\": \"Food\",\n      \"limit\": 50.0,\n      \"spent\": 45.5,\n      \"remaining\": 4.5,\n      \"percentage\": 91.0,\n      \"status\": \"warning\"\n    }\n  ]\n}\n```\n\n#### 🎨 Dynamic UI Integration Rules:\nFrontend developers can map the returning `status` values to CSS classes directly:\n- **`normal`**: (<80% spent) -> Display green indicator.\n- **`warning`**: (80% - 99.9% spent) -> Display alert amber yellow indicator.\n- **`danger`**: (>=100% spent) -> Display pulsing crimson red alert indicator."
+          },
+          "response": []
+        },
+        {
+          "name": "List Configured Category Budgets",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/budgets?month=2026-05",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "budgets"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-05",
+                  "description": "Filter by month (YYYY-MM)"
+                }
+              ]
+            },
+            "description": "### 📋 List Configured Category Budgets\nRetrieves the active list of user-configured budget limits.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### ⚙️ Query Parameters:\n- `month` (Optional): Filter results to a specific month in YYYY-MM format (e.g. ?month=2026-05)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Budget Target Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/budgets/YOUR_BUDGET_ID",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "budgets",
+                "YOUR_BUDGET_ID"
+              ]
+            },
+            "description": "### 🗑️ Delete Budget Target Record\nPermanently deletes a configured category budget limit.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### ⚙️ URL Path Parameters:\n- `YOUR_BUDGET_ID`: The Mongoose `_id` identifier representing the budget limit record (e.g. `664dd4e03d4a460a80e1a789`)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Grok Extractor",
+      "item": [
+        {
+          "name": "Autofill Receipt Text Parser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rawText\": \"Paid $32.45 for a ride back home from the office with Uber on 2026-05-22\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/extract",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ai",
+                "extract"
+              ]
+            },
+            "description": "### 🤖 Autofill Receipt Parser (AI Power Core)\nParses unstructured transaction text (SMS alerts, receipt texts, emails) or receipt images (JPG, PNG, GIF) and converts them into structured expense parameters. Supports both JSON text inputs and multipart receipt image uploads. Leverages Grok-Vision or Llama-Vision models depending on key brand.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📦 Input Format 1: Text-Only (Application/JSON)\n| Field | Type | Required | Description | Constraints |\n| :--- | :--- | :--- | :--- | :--- |\n| `rawText` | String | **Yes** | Raw SMS text or invoice text | Min 5 chars long |\n\n#### 📦 Input Format 2: Receipt Image Upload (Multipart/Form-Data)\n| Field | Type | Required | Description | Constraints |\n| :--- | :--- | :--- | :--- | :--- |\n| `receipt` | File (Binary) | **Yes** | Image of the receipt or invoice | JPG, PNG, GIF (Max 5MB) |\n| `rawText` | String | No | Accompanying manual text or SMS note | Optional |\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"AI expense extraction completed successfully\",\n  \"data\": {\n    \"amount\": 32.45,\n    \"category\": \"Transport\",\n    \"date\": \"2026-05-22\",\n    \"note\": \"Uber ride back home from the office\"\n  }\n}\n```\n\n#### 🛠️ AI Parsing Design Architecture:\n- **Vision Model Auto-Routing**: If a receipt file is present, routes to `grok-2-vision-1212` or `llama-3.2-11b-vision-preview` to parse. Text-only runs utilize `grok-2` or `llama-3.3-70b-versatile`.\n- **Automated Disk Cleanup**: Instantly purges temporary uploads from disk after extraction to preserve server storage.\n- **Automated Fallbacks**: Safely falls back to current dates and 'Other' categories if AI cannot confidently parse certain values."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard Analytics",
+      "item": [
+        {
+          "name": "Detailed Dashboard Analytics (Monthly)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/dashboard/analytics?rangeType=monthly",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "rangeType",
+                  "value": "monthly",
+                  "description": "Aggr target filter (daily | weekly | monthly | yearly | custom)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "amount",
+                  "description": "Sorting metric for topCategories ('amount' sorts by spend, 'count' sorts by transaction count)"
+                },
+                {
+                  "key": "limit",
+                  "value": "3",
+                  "description": "Limit response topCategories to first N categories"
+                }
+              ]
+            },
+            "description": "### 📊 Detailed Dashboard Analytics (Monthly)\nRetrieves high-fidelity structured arrays optimized for rendering dashboard analytics tables and dynamic graphs.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"data\": {\n    \"totalSpending\": 84.5,\n    \"budgetStatus\": {\n      \"totalBudgetLimit\": 500,\n      \"totalSpent\": 84.5,\n      \"percentageUsed\": 16.9,\n      \"exceededLimitsCount\": 0\n    },\n    \"topCategories\": [\n      {\n        \"category\": \"Food\",\n        \"spent\": 84.5,\n        \"percentage\": 100.0\n      }\n    ],\n    \"spendingTrends\": {\n      \"rechartsData\": [\n        {\n          \"name\": \"Week 1\",\n          \"Spending\": 0\n        },\n        {\n          \"name\": \"Week 4\",\n          \"Spending\": 84.5\n        }\n      ],\n      \"chartjsData\": {\n        \"labels\": [\"Week 1\", \"Week 2\", \"Week 3\", \"Week 4\", \"Week 5\"],\n        \"datasets\": [\n          {\n            \"label\": \"Spending Trend\",\n            \"data\": [0, 0, 0, 84.5, 0]\n          }\n        ]\n      },\n      \"apexChartsData\": {\n        \"series\": [\n          {\n            \"name\": \"Expenditure\",\n            \"data\": [0, 0, 0, 84.5, 0]\n          }\n        ],\n        \"categories\": [\"Week 1\", \"Week 2\", \"Week 3\", \"Week 4\", \"Week 5\"]\n      }\n    }\n  }\n}\n```\n\n#### 📊 Frontend Chart Mapping Guide:\n- **Recharts (React)**: Pass the array `data.spendingTrends.rechartsData` directly to the `<LineChart data={rechartsData}>` container.\n- **Chart.js (Vanilla / Vue)**: Map `labels` and `datasets` inside your chart config parameters directly from `data.spendingTrends.chartjsData`.\n- **ApexCharts**: Pass `apexChartsData.series` directly as the series attribute, and `apexChartsData.categories` as the x-axis categories parameter."
+          },
+          "response": []
+        },
+        {
+          "name": "Detailed Dashboard Analytics (Yearly)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/dashboard/analytics?rangeType=yearly",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "rangeType",
+                  "value": "yearly"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "amount",
+                  "description": "Sorting metric for topCategories ('amount' sorts by spend, 'count' sorts by transaction count)"
+                },
+                {
+                  "key": "limit",
+                  "value": "3",
+                  "description": "Limit response topCategories to first N categories"
+                }
+              ]
+            },
+            "description": "### 📅 Detailed Dashboard Analytics (Yearly)\nRetrieves annual aggregates parsed by months, returning layout objects fully prepared for graph systems.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📈 Expected Response Pattern (200 OK):\n- Includes the same visual mapping arrays as monthly, with trends labeled by calendar month abbreviations (e.g. `'Jan'`, `'Feb'`, `'May'`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Detailed Dashboard Analytics (Custom Date Range)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/dashboard/analytics?rangeType=custom&startDate=2026-05-01&endDate=2026-05-31",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "rangeType",
+                  "value": "custom",
+                  "description": "Triggers customized window query"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-05-01",
+                  "description": "Start bounds (YYYY-MM-DD)"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-05-31",
+                  "description": "End bounds (YYYY-MM-DD)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "amount",
+                  "description": "Sorting metric for topCategories ('amount' sorts by spend, 'count' sorts by transaction count)"
+                },
+                {
+                  "key": "limit",
+                  "value": "3",
+                  "description": "Limit response topCategories to first N categories"
+                }
+              ]
+            },
+            "description": "### 🗓️ Detailed Dashboard Analytics (Custom Date Range)\nAggregates expenditures by days matching custom calendar bounds.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### ⚠️ Joi Requirements:\n- Must include both `startDate` and `endDate` in `YYYY-MM-DD` standard format, else response will trigger an validation error check."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications Dispatcher",
       "item": [
         {
           "name": "Send System Notification",
@@ -325,7 +945,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"fcmToken\": \"fcm_device_token_placeholder\",\n  \"channels\": [\"email\", \"sms\"]\n}"
+              "raw": "{\n  \"name\": \"Vedant Hirani\",\n  \"email\": \"vedant.hirani@example.com\",\n  \"phone\": \"+1234567890\",\n  \"fcmToken\": \"fcm_device_token_placeholder\",\n  \"channels\": [\"email\", \"sms\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/notifications/send",
@@ -337,7 +957,7 @@
                 "send"
               ]
             },
-            "description": "Triggers and dispatches system notifications over specified channels (email, sms, push)."
+            "description": "### 🔔 Send System Notification (Supporting Alert utility)\nTriggers multi-channel transaction notifications (Email, SMS, or Push notifications) to target recipients. Perfect for alert alerts or automated updates.\n\n#### 🔑 Authentication:\n- **Bearer Token Required** (`{{auth_token}}`)\n\n#### 📦 Request Payload (Joi Constraints):\n| Field | Type | Required | Description | Constraints |\n| :--- | :--- | :--- | :--- | :--- |\n| `name` | String | **Yes** | Recipient full name | Non-empty |\n| `email` | String | Optional | Recipient email destination | Valid email pattern |\n| `phone` | String | Optional | Recipient mobile phone target | String |\n| `fcmToken` | String | Optional | Firebase Cloud Messaging device ID | String |\n| `channels` | Array | **Yes** | Dispatches to channels | Array of `'email'`, `'sms'`, `'push'` (Min 1 channel req) |\n\n#### 📈 Expected Response Pattern (200 OK):\n```json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Notifications sent successfully through: email, sms\"\n}\n```"
           },
           "response": []
         }

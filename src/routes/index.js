@@ -5,6 +5,7 @@ import notificationRoutes from './notification.routes.js';
 import expenseRoutes from './expense.routes.js';
 import budgetRoutes from './budget.routes.js';
 import aiRoutes from './ai.routes.js';
+import dashboardRoutes from './dashboard.routes.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/expenses', expenseRoutes);
 router.use('/budgets', budgetRoutes);
 router.use('/ai', aiRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

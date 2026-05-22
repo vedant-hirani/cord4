@@ -991,10 +991,15 @@
           <form id="ai-extract-form" onsubmit="handleAIExtract(event)">
             <div class="form-group">
               <label for="ai-raw-text">Raw Text Records</label>
-              <textarea id="ai-raw-text" class="form-control" placeholder="Example: Spent $42.50 at Whole Foods Market on 2026-05-22 for fresh organic produce..." required></textarea>
+              <textarea id="ai-raw-text" class="form-control" placeholder="Example: Spent $42.50 at Whole Foods Market on 2026-05-22 for fresh organic produce..."></textarea>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+              <label for="ai-receipt-image">Or Upload Receipt Image (JPG, PNG, GIF)</label>
+              <input type="file" id="ai-receipt-image" class="form-control" accept="image/*" style="padding-top: 7px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff;">
             </div>
             
-            <button type="submit" class="btn btn-primary" id="btn-ai-extract" style="width: 100%;">
+            <button type="submit" class="btn btn-primary" id="btn-ai-extract" style="width: 100%; margin-top: 20px;">
               <i class="fa-solid fa-atom"></i>
               <span>Extract & Confirm Parameters</span>
             </button>
@@ -1718,7 +1723,13 @@
       event.preventDefault();
 
       const rawText = document.getElementById('ai-raw-text').value.trim();
-      if (!rawText) return;
+      const fileInput = document.getElementById('ai-receipt-image');
+      const file = fileInput.files[0];
+
+      if (!rawText && !file) {
+        showToast('Please enter receipt text or upload an image', 'warning');
+        return;
+      }
 
       const loader = document.getElementById('ai-loading');
       const btn = document.getElementById('btn-ai-extract');
@@ -1729,11 +1740,28 @@
       preview.style.display = 'none';
 
       try {
-        const response = await fetch('/api/v1/ai/extract', {
-          method: 'POST',
-          headers: getHeaders(),
-          body: JSON.stringify({ rawText })
-        });
+        let response;
+        if (file) {
+          const formData = new FormData();
+          formData.append('receipt', file);
+          if (rawText) {
+            formData.append('rawText', rawText);
+          }
+
+          response = await fetch('/api/v1/ai/extract', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          });
+        } else {
+          response = await fetch('/api/v1/ai/extract', {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ rawText })
+          });
+        }
 
         const res = await response.json();
         
@@ -1763,6 +1791,7 @@
     function discardAIExtract() {
       document.getElementById('ai-preview-card').style.display = 'none';
       document.getElementById('ai-raw-text').value = '';
+      document.getElementById('ai-receipt-image').value = '';
       showToast('AI record parameters discarded', 'warning');
     }
 
@@ -1788,8 +1817,9 @@
 
         showToast('Transaction confirmed and saved to Ledger!', 'success');
         
-        // Reset AI Text Area
+        // Reset AI Form Fields
         document.getElementById('ai-raw-text').value = '';
+        document.getElementById('ai-receipt-image').value = '';
         document.getElementById('ai-preview-card').style.display = 'none';
 
         // Reload data

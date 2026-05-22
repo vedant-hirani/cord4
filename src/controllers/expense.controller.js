@@ -19,14 +19,29 @@ export const deleteExpenseController = asyncHandler(async (req, res) => {
 });
 
 export const listExpensesController = asyncHandler(async (req, res) => {
-  const expenses = await expenseService.listExpenses(req.user.id, req.query);
-  return ApiResponse.success(res, expenses, SUCCESS_MESSAGES.LIST_EXPENSES, 200);
+  const result = await expenseService.listExpenses(req.user.id, req.query);
+  return ApiResponse.success(res, result, SUCCESS_MESSAGES.LIST_EXPENSES, 200);
 });
 
 export const exportCSVController = asyncHandler(async (req, res) => {
   const csv = await expenseService.exportExpensesCSV(req.user.id, req.query);
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename=expenses.csv');
+
+  // Build a descriptive filename based on filters
+  let fileLabel = 'all_time';
+  if (req.query.month) {
+    fileLabel = req.query.month; // e.g. 2026-05
+  } else if (req.query.year) {
+    fileLabel = req.query.year;
+  } else if (req.query.startDate && req.query.endDate) {
+    fileLabel = `${req.query.startDate}_to_${req.query.endDate}`;
+  }
+  if (req.query.category) {
+    fileLabel += `_${req.query.category.toLowerCase()}`;
+  }
+  const filename = `SpendAI_Expenses_${fileLabel}.csv`;
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   return res.status(200).send(csv);
 });
 
@@ -35,11 +50,35 @@ export const getDashboardStatsController = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, stats, SUCCESS_MESSAGES.GET_STATS, 200);
 });
 
+export const exportPDFController = asyncHandler(async (req, res) => {
+  const pdfBuffer = await expenseService.exportExpensesPDF(req.user.id, req.query);
+
+  // Build a descriptive filename based on filters
+  let fileLabel = 'all_time';
+  if (req.query.month) {
+    fileLabel = req.query.month;
+  } else if (req.query.year) {
+    fileLabel = req.query.year;
+  } else if (req.query.startDate && req.query.endDate) {
+    fileLabel = `${req.query.startDate}_to_${req.query.endDate}`;
+  }
+  if (req.query.category) {
+    fileLabel += `_${req.query.category.toLowerCase()}`;
+  }
+  const filename = `SpendAI_Report_${fileLabel}.pdf`;
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Length', pdfBuffer.length);
+  return res.status(200).send(pdfBuffer);
+});
+
 export default {
   createExpenseController,
   updateExpenseController,
   deleteExpenseController,
   listExpensesController,
   exportCSVController,
+  exportPDFController,
   getDashboardStatsController,
 };

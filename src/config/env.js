@@ -22,13 +22,17 @@ const envSchema = Joi.object({
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
   
   // Optional placeholders
+  GROK_API_KEY: Joi.string().allow('').default(''),
+
   AWS_ACCESS_KEY: Joi.string().allow('').default(''),
   AWS_SECRET_KEY: Joi.string().allow('').default(''),
   AWS_S3_BUCKET: Joi.string().allow('').default(''),
   AWS_REGION: Joi.string().allow('').default('us-east-1'),
   
   REDIS_URL: Joi.string().allow('').default('redis://localhost:6379'),
-  
+
+  CORS_ORIGIN: Joi.string().allow('').default('*'),
+
   FIREBASE_SENDER_ID: Joi.string().allow('').default(''),
   FIREBASE_SERVER_KEY: Joi.string().allow('').default(''),
   

@@ -64,6 +64,8 @@ export const SUCCESS_MESSAGES = {
   GET_STATS: 'Dashboard analytics retrieved successfully',
   SET_BUDGET: 'Budget threshold configured successfully',
   GET_ALERTS: 'Budget status alerts retrieved successfully',
+  LIST_BUDGETS: 'Configured category budgets listed successfully',
+  DELETE_BUDGET: 'Category budget limit target deleted successfully',
   AI_EXTRACT: 'AI expense extraction completed successfully',
 };
 

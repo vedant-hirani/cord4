@@ -23,7 +23,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: '*', // Customize this with specific domains in production
+    origin: env.CORS_ORIGIN || '*', // Set CORS_ORIGIN in .env for production
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -58,7 +58,8 @@ app.get('/', (req, res) => {
       notifications: '/api/v1/notifications/*',
       expenses: '/api/v1/expenses/*',
       budgets: '/api/v1/budgets/*',
-      ai: '/api/v1/ai/*'
+      ai: '/api/v1/ai/*',
+      dashboard: '/api/v1/dashboard/*'
     }
   });
 });

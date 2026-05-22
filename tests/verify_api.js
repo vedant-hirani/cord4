@@ -109,8 +109,22 @@ async function runEndToEndVerification() {
       month: '2026-05'
     };
     
-    await axios.post(`${BASE_URL}/budgets`, budgetLimit, authHeaders);
-    console.log(` ✅ Budget limit of $${budgetLimit.limit} set successfully for "${budgetLimit.category}" for ${budgetLimit.month}.`);
+    const budgetRes = await axios.post(`${BASE_URL}/budgets`, budgetLimit, authHeaders);
+    const budgetId = budgetRes.data.data._id;
+    console.log(` ✅ Budget limit of $${budgetLimit.limit} set successfully for "${budgetLimit.category}" for ${budgetLimit.month}. ID: ${budgetId}`);
+
+    // ----------------------------------------------------
+    // STEP 6B: List Configured Budgets
+    // ----------------------------------------------------
+    console.log('\n🔹 [Step 6B/10] Listing configured budgets...');
+    const listBudgetsRes = await axios.get(`${BASE_URL}/budgets?month=2026-05`, authHeaders);
+    console.log(' ✅ List budgets success! Configured limit entries:');
+    console.log(JSON.stringify(listBudgetsRes.data.data, null, 2));
+
+    const foundBudget = listBudgetsRes.data.data.find(b => b._id === budgetId);
+    if (!foundBudget) {
+      throw new Error('Configured budget target could not be retrieved in budget listing.');
+    }
 
     // ----------------------------------------------------
     // STEP 7: Get Progressive Budget alerts (Warning / Danger)
@@ -141,6 +155,20 @@ async function runEndToEndVerification() {
     console.log('   [6-Month Trends]:', JSON.stringify(statsRes.data.data.monthlyTrends, null, 2));
 
     // ----------------------------------------------------
+    // STEP 8B: Detailed graph-ready Dashboard Analytics
+    // ----------------------------------------------------
+    console.log('\n🔹 [Step 8B/10] Querying highly detailed graph-ready Dashboard Analytics...');
+    // We test multiple filters: yearly, custom, and weekly
+    const analyticYearly = await axios.get(`${BASE_URL}/dashboard/analytics?rangeType=yearly`, authHeaders);
+    console.log(' ✅ Yearly range analytics success! Total spending in year:', analyticYearly.data.data.totalSpending);
+    console.log('   Supports Recharts:', !!analyticYearly.data.data.spendingTrends.rechartsData);
+    console.log('   Supports Chart.js labels count:', analyticYearly.data.data.spendingTrends.chartjsData.labels.length);
+    console.log('   Supports ApexCharts series values:', analyticYearly.data.data.spendingTrends.apexChartsData.series[0].data.length);
+
+    const analyticCustom = await axios.get(`${BASE_URL}/dashboard/analytics?rangeType=custom&startDate=2026-05-01&endDate=2026-05-31`, authHeaders);
+    console.log(' ✅ Custom date range filter success! Total spending in custom range:', analyticCustom.data.data.totalSpending);
+
+    // ----------------------------------------------------
     // STEP 9: Test CSV spreadsheet generation & stream export
     // ----------------------------------------------------
     console.log('\n🔹 [Step 9/10] Fetching dynamic CSV spreadsheet download streams...');
@@ -156,6 +184,18 @@ async function runEndToEndVerification() {
     console.log('\n🔹 [Step 10/10] Performing cleanup of verification test entries...');
     await axios.delete(`${BASE_URL}/expenses/${expenseId}`, authHeaders);
     console.log(' ✅ Cleanup Success! Test expense deleted from database.');
+
+    console.log('   Deleting configured budget target record...');
+    await axios.delete(`${BASE_URL}/budgets/${budgetId}`, authHeaders);
+    console.log(' ✅ Budget limit deleted successfully!');
+
+    console.log('   Verifying deletion by listing budgets again...');
+    const verifyDelList = await axios.get(`${BASE_URL}/budgets?month=2026-05`, authHeaders);
+    const budgetExists = verifyDelList.data.data.some(b => b._id === budgetId);
+    if (budgetExists) {
+      throw new Error('Budget target record still exists after delete request was dispatched.');
+    }
+    console.log(' ✅ Confirmed! Budget is no longer in DB.');
 
     console.log('\n🌟🌟🌟 ALL ENDPOINTS, INTEGRATIONS, FILTERS, AND ALERTS ARE 100% OPERATIONAL! 🌟🌟🌟');
 

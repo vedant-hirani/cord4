@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Budget from './budget.model.js';
 import Expense from '../expense/expense.model.js';
 import ApiError from '../../utils/ApiError.js';
@@ -35,7 +36,7 @@ class BudgetService {
     end.setUTCMonth(end.getUTCMonth() + 1);
 
     const monthlySpendsAgg = await Expense.aggregate([
-      { $match: { userId, date: { $gte: start, $lt: end } } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId), date: { $gte: start, $lt: end } } },
       { $group: { _id: '$category', total: { $sum: '$amount' } } },
     ]);
 
@@ -63,6 +64,14 @@ class BudgetService {
     });
 
     return alerts;
+  }
+
+  async deleteBudget(userId, budgetId) {
+    const deleted = await Budget.findOneAndDelete({ _id: budgetId, userId });
+    if (!deleted) {
+      throw new ApiError(404, 'Budget limit record not found');
+    }
+    return { success: true };
   }
 }
 

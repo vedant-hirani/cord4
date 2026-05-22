@@ -22,9 +22,36 @@ export const setBudgetSchema = Joi.object({
     }),
 });
 
+export const listBudgetsQuerySchema = Joi.object({
+  month: Joi.string()
+    .pattern(/^\d{4}-\d{2}$/)
+    .optional()
+    .messages({
+      'string.pattern.base': 'Budget month filter must match YYYY-MM format (e.g. 2026-05)',
+    }),
+});
+
+export const deleteBudgetParamSchema = Joi.object({
+  id: Joi.string()
+    .hex()
+    .length(24)
+    .required()
+    .messages({
+      'any.required': 'Budget target ID is required',
+      'string.hex': 'Budget ID must be a valid 24-character hexadecimal MongoDB ObjectId string',
+      'string.length': 'Budget ID must be exactly 24 characters long',
+    }),
+});
+
 export const validateSetBudget = validateRequest(setBudgetSchema, 'body');
+export const validateListBudgets = validateRequest(listBudgetsQuerySchema, 'query');
+export const validateDeleteBudget = validateRequest(deleteBudgetParamSchema, 'params');
 
 export default {
   validateSetBudget,
+  validateListBudgets,
+  validateDeleteBudget,
   setBudgetSchema,
+  listBudgetsQuerySchema,
+  deleteBudgetParamSchema,
 };

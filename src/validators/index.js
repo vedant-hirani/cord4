@@ -1,8 +1,8 @@
 import { validateRegister, validateLogin, validateRefreshToken } from './auth.validation.js';
 import { validateUpdateProfile, validateChangePassword } from './user.validation.js';
 import { validateSendNotification } from './notification.validation.js';
-import { validateCreateExpense, validateUpdateExpense } from './expense.validation.js';
-import { validateSetBudget } from './budget.validation.js';
+import { validateCreateExpense, validateUpdateExpense, validateListExpenses } from './expense.validation.js';
+import { validateSetBudget, validateListBudgets, validateDeleteBudget } from './budget.validation.js';
 import { validateExtract } from './ai.validation.js';
 import { validateRequest } from './validation.runner.js';
 
@@ -16,7 +16,10 @@ export {
   validateSendNotification,
   validateCreateExpense,
   validateUpdateExpense,
+  validateListExpenses,
   validateSetBudget,
+  validateListBudgets,
+  validateDeleteBudget,
   validateExtract,
   validateRequest,
 };
@@ -30,7 +33,10 @@ export default {
   validateSendNotification,
   validateCreateExpense,
   validateUpdateExpense,
+  validateListExpenses,
   validateSetBudget,
+  validateListBudgets,
+  validateDeleteBudget,
   validateExtract,
   validateRequest,
 };
