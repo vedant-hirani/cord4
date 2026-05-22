@@ -20,6 +20,7 @@ const envSchema = Joi.object({
     'string.min': 'JWT_REFRESH_SECRET must be at least 8 characters long'
   }),
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
+  RATE_LIMIT_MAX: Joi.number().default(800),
   
   // Optional placeholders
   GROK_API_KEY: Joi.string().allow('').default(''),
