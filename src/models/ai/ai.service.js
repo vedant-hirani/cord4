@@ -4,8 +4,9 @@ import { createRequire } from 'module';
 import ApiError from '../../utils/ApiError.js';
 import env from '../../config/env.js';
 
+// pdf-parse v1 exports a single default function — use createRequire for CJS interop in ESM
 const require = createRequire(import.meta.url);
-const { PDFParse } = require('pdf-parse');
+const pdfParse = require('pdf-parse');
 
 class AIService {
   async extractExpense(input) {
@@ -54,12 +55,9 @@ class AIService {
       } else if (isPDF) {
         try {
           const fileBuffer = fs.readFileSync(file.path);
-          const parser = new PDFParse();
-          const pdfData = await parser.loadPDF(fileBuffer);
-          // Collect text from all pages
-          const allPages = pdfData.pages || [];
-          const fileText = allPages.map(p => p.text || '').join('\n').trim();
-          rawText = (rawText ? rawText + '\n\n' : '') + '[Uploaded PDF File Content]:\n' + (fileText || '');
+          const pdfData = await pdfParse(fileBuffer);
+          const fileText = (pdfData.text || '').trim();
+          rawText = (rawText ? rawText + '\n\n' : '') + '[Uploaded PDF File Content]:\n' + fileText;
 
           // Delete file immediately as we have extracted the text
           try {
